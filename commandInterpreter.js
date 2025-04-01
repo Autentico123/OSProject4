@@ -27,6 +27,7 @@ class CommandInterpreter {
       whoami: this.whoamiCommand.bind(this),
       date: this.dateCommand.bind(this),
       find: this.findCommand.bind(this),
+      rename: this.renameCommand.bind(this),
     };
 
     this.setupTerminalKeyEvents();
@@ -285,6 +286,10 @@ class CommandInterpreter {
       '  <span class="command-name">find</span> <pattern>       - Search for files',
       true
     );
+    this.displayOutput(
+      '  <span class="command-name">rename</span> <source> <new-name> - Rename file or directory',
+      true
+    );
 
     this.displayOutput(
       '<span class="command-group">Process Management:</span>',
@@ -493,12 +498,14 @@ class CommandInterpreter {
         ? "/" + name
         : this.os.fileSystem.currentPath + "/" + name;
 
-    const success = this.os.fileSystem.deleteItem(path);
+    const result = this.os.fileSystem.deleteItem(path);
 
-    if (!success) {
+    if (!result.success) {
       this.displayOutput(
         `rm: cannot remove '${name}': No such file or directory`
       );
+    } else {
+      this.displayOutput(`Removed ${result.type}: ${name}`);
     }
   }
 
@@ -769,5 +776,35 @@ class CommandInterpreter {
         this.findFiles(fullPath, pattern, results);
       }
     });
+  }
+
+  renameCommand(args) {
+    if (args.length < 2) {
+      this.displayOutput(
+        "rename: missing operand\nUsage: rename <source> <new-name>"
+      );
+      return;
+    }
+
+    const sourcePath = args[0];
+    const newName = args[1];
+
+    // Check if source path is absolute or relative
+    const path = sourcePath.startsWith("/")
+      ? sourcePath
+      : this.os.fileSystem.currentPath === "/"
+      ? "/" + sourcePath
+      : this.os.fileSystem.currentPath + "/" + sourcePath;
+
+    // Execute rename operation
+    const success = this.os.fileSystem.renameItem(path, newName);
+
+    if (!success) {
+      this.displayOutput(
+        `rename: cannot rename '${sourcePath}' to '${newName}': No such file or directory, or target name already exists`
+      );
+    } else {
+      this.displayOutput(`Renamed '${sourcePath}' to '${newName}'`);
+    }
   }
 }

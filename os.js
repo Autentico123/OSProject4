@@ -10,6 +10,9 @@ class OperatingSystem {
   boot() {
     console.log("Booting OS...");
 
+    // Add startup animation class
+    document.querySelector(".terminal-container").classList.add("startup");
+
     this.fileSystem = new FileSystem();
     this.processManager = new ProcessManager();
     this.ioManager = new IOManager(this);
@@ -34,6 +37,11 @@ class OperatingSystem {
       "Type 'help' for available commands."
     );
     this.commandInterpreter.displayPrompt();
+
+    // Remove animation class after boot
+    setTimeout(() => {
+      document.querySelector(".terminal-container").classList.remove("startup");
+    }, 2000);
   }
 
   setupEventListeners() {
